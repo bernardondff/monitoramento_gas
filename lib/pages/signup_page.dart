@@ -17,8 +17,8 @@ class SignUpPage extends StatelessWidget {
           children: [
             // Logo
             Image.asset(
-              'assets/logo_app.png',
-              height: 120,
+              'assets/logo_app_sem_fundo.png', // troquei para .png
+              height: 350, // aumentei o tamanho
             ),
             const SizedBox(height: 20),
 
