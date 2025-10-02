@@ -25,7 +25,7 @@ Dart
 
 Clone o repositório:
 
-git clone https://github.com/SEU-USUARIO/monitoramento_gas.git
+git clone https://github.com/bernardondff/monitoramento_gas.git
 
 
 Entre na pasta:
@@ -51,3 +51,4 @@ monitoramento_gas/
 │-- assets/
 │   ├── images/
 │-- pubspec.yaml
+
