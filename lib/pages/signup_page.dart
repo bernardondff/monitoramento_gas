@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:monitoramento_gas/pages/signup_email_page.dart';
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
@@ -58,7 +59,10 @@ class SignUpPage extends StatelessWidget {
             // Alternativa de login com e-mail/telefone
             TextButton(
               onPressed: () {
-                // depois leva pra outra tela de cadastro manual
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                );
               },
               child: const Text(
                 "Usar e-mail ou telefone",
