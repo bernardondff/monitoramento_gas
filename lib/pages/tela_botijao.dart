@@ -1,29 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SafeGas Monitor',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF1A3644),
-        primaryColor: const Color(0xFF1A3644),
-        fontFamily: 'Roboto',
-      ),
-      home: const GasMonitorScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
 class GasMonitorScreen extends StatefulWidget {
   const GasMonitorScreen({super.key});
 
@@ -32,7 +9,8 @@ class GasMonitorScreen extends StatefulWidget {
 }
 
 class _GasMonitorScreenState extends State<GasMonitorScreen> {
-  int _selectedIndex = 1;
+  // 1. ÍCONE "HOME" SELECIONADO POR PADRÃO
+  int _selectedIndex = 0; // Alterado de 1 para 0
 
   void _onItemTapped(int index) {
     setState(() {
@@ -43,10 +21,14 @@ class _GasMonitorScreenState extends State<GasMonitorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // 3. COR DE FUNDO ESCURA GARANTIDA
+      backgroundColor: const Color(0xFF1A3644),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        // 2. REMOVE A SETA DE VOLTAR
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
@@ -68,7 +50,7 @@ class _GasMonitorScreenState extends State<GasMonitorScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             Spacer(),
-            GasTankWidget(percentage: 75), // O widget foi atualizado
+            GasTankWidget(percentage: 75),
             SizedBox(height: 40),
             StatusWidget(),
             Spacer(),
@@ -105,10 +87,9 @@ class _GasMonitorScreenState extends State<GasMonitorScreen> {
   }
 }
 
+// O RESTO DO CÓDIGO CONTINUA O MESMO
 
-// --- ATUALIZAÇÃO PRINCIPAL AQUI ---
-
-// WIDGET DO BOTIJÃO DE GÁS (AGORA COM ANIMAÇÃO)
+// WIDGET DO BOTIJÃO DE GÁS (COM ANIMAÇÃO)
 class GasTankWidget extends StatefulWidget {
   final double percentage;
   const GasTankWidget({super.key, required this.percentage});
@@ -126,8 +107,8 @@ class _GasTankWidgetState extends State<GasTankWidget>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2), // Duração de um ciclo da onda
-    )..repeat(); // Faz a animação ficar em loop
+      duration: const Duration(seconds: 2),
+    )..repeat();
   }
 
   @override
@@ -144,14 +125,12 @@ class _GasTankWidgetState extends State<GasTankWidget>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Corpo do botijão (fundo)
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(100),
             ),
           ),
-          // LÍQUIDO ANIMADO
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
@@ -168,7 +147,6 @@ class _GasTankWidgetState extends State<GasTankWidget>
               );
             },
           ),
-          // Texto da porcentagem
           Text(
             '${widget.percentage.toInt()}%',
             style: const TextStyle(
@@ -192,45 +170,43 @@ class _GasTankWidgetState extends State<GasTankWidget>
 
 // CLASSE QUE DESENHA A ONDA
 class WavePainter extends CustomPainter {
-  final double animationValue; // valor de 0.0 a 1.0
+  final double animationValue;
   final double percentage;
   final Color color;
 
-  WavePainter({required this.animationValue, required this.percentage, required this.color});
+  WavePainter(
+      {required this.animationValue,
+      required this.percentage,
+      required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-
-    // A altura base da onda
     final double waveHeight = size.height * (percentage / 100);
-    
-    // Path é o objeto que usamos para desenhar formas customizadas
     final path = Path();
-    path.moveTo(0, size.height); // Começa no canto inferior esquerdo
-    path.lineTo(0, size.height - waveHeight); // Sobe até a altura do líquido
+    path.moveTo(0, size.height);
+    path.lineTo(0, size.height - waveHeight);
 
-    // Lógica para desenhar a curva da onda usando uma função seno
     for (double i = 0; i <= size.width; i++) {
       path.lineTo(
         i,
-        (size.height - waveHeight) + (math.sin((i / size.width * 2 * math.pi) + (animationValue * 2 * math.pi)) * 8), // A matemática da onda
+        (size.height - waveHeight) +
+            (math.sin((i / size.width * 2 * math.pi) +
+                    (animationValue * 2 * math.pi)) *
+                8),
       );
     }
 
-    path.lineTo(size.width, size.height); // Linha do topo direito até o fundo direito
-    path.close(); // Fecha o caminho
-
+    path.lineTo(size.width, size.height);
+    path.close();
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true; // Sempre redesenha para a animação funcionar
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-// WIDGET PARA A MENSAGEM DE STATUS (sem alteração)
+// WIDGET PARA A MENSAGEM DE STATUS
 class StatusWidget extends StatelessWidget {
   const StatusWidget({super.key});
 

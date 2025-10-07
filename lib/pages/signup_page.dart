@@ -56,7 +56,7 @@ class SignUpPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Alternativa de login com e-mail/telefone
+            // Alternativa de login com e-mail
             TextButton(
               onPressed: () {
                 Navigator.push(
@@ -65,13 +65,13 @@ class SignUpPage extends StatelessWidget {
                 );
               },
               child: const Text(
-                "Usar e-mail ou telefone",
+                "Usar e-mail para login",
                 style: TextStyle(color: Colors.white70),
               ),
             ),
             const SizedBox(height: 30),
 
-            // Link para Login
+            // Link para Login se já tiver conta
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
