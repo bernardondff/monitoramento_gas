@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "537714219373",
+    "project_id": "safegas001",
+    "storage_bucket": "safegas001.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:537714219373:android:55a66a89f87887b0cd6264",
+        "android_client_info": {
+          "package_name": "com.example.monitoramento_gas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "537714219373-cgqudfcg1vrvmtvpefeiko2vmd2sqp8i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.monitoramento_gas",
+            "certificate_hash": "a5ac65c68ce16f24a18fddb350b50eb044fac5d9"
+          }
+        },
+        {
+          "client_id": "537714219373-56k25atb2cp50vqr3g0obd95m9sogasq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFvPUb7VSITdZ6qMwtSnc-AvaZoudIF_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537714219373-56k25atb2cp50vqr3g0obd95m9sogasq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "537714219373-nf6inv6i8vltqem8kk2uf103rk8k829a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.monitoramentoGas"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
