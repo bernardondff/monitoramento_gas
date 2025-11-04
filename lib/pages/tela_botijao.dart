@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GasMonitorScreen extends StatefulWidget {
-  const GasMonitorScreen({super.key});
+  // torne o usuário opcional para compatibilidade com instâncias atuais
+  final User? user;
+
+  const GasMonitorScreen({super.key, this.user});
 
   @override
   State<GasMonitorScreen> createState() => _GasMonitorScreenState();
 }
 
 class _GasMonitorScreenState extends State<GasMonitorScreen> {
-  // 1. ÍCONE "HOME" SELECIONADO POR PADRÃO
   int _selectedIndex = 0; // Alterado de 1 para 0
 
   void _onItemTapped(int index) {

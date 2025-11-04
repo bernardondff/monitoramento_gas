@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:monitoramento_gas/pages/signup_email_page.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:monitoramento_gas/services/auth_service.dart';
+import 'package:monitoramento_gas/pages/tela_botijao.dart';
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
 
@@ -36,24 +38,66 @@ class SignUpPage extends StatelessWidget {
             const SizedBox(height: 40),
 
             // Botão Google
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-              onPressed: () {
-                // depois integramos com Firebase Auth
-              },
-              icon: const Icon(Icons.account_circle, size: 24, color: Colors.black87),
-              label: const Text(
-                "Continuar com o Google",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
+// ... (linha 36, o SizedBox)
+  const SizedBox(height: 40),
+
+  ElevatedButton.icon(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black87,
+      minimumSize: const Size(double.infinity, 50),
+      // Adiciona a borda arredondada que você tinha
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12), 
+      ),
+    ),
+
+    // 1. ESTE É O "onPressed" QUE USA OS IMPORTS
+    onPressed: () async {
+      // Mostra um indicador de "carregando"
+      // showDialog(
+      //   context: context,
+      //   builder: (context) => const Center(child: CircularProgressIndicator()),
+      //   barrierDismissible: false,
+      // );
+
+      // USA O 'AuthService' (import 1 some)
+      AuthService authService = AuthService();
+      // USA O 'User' (import 2 some)
+      User? user = await authService.signInWithGoogle();
+
+      // if (context.mounted) {
+      //   Navigator.of(context).pop(); // Tira o "carregando"
+      // }
+
+      if (user != null && context.mounted) {
+        // SUCESSO!
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            // USA A 'GasMonitorScreen' (import 3 some)
+            builder: (context) => GasMonitorScreen(user: user), 
+          ),
+        );
+      } else if (context.mounted) {
+        // FALHA!
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Falha ao fazer login com o Google.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    },
+    icon: const Icon(Icons.person), // (ícone do Google)
+    label: const Text(
+      'Continuar com o Google',
+      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    ),
+    
+  ),
+
+  const SizedBox(height: 20), // Espaçamento
+  // ... (aqui continua seu texto "Usar e-mail para login")
             const SizedBox(height: 20),
 
             // Alternativa de login com e-mail
@@ -61,6 +105,7 @@ class SignUpPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
+                  // ajustado para o nome real do widget em signup_email_page.dart
                   MaterialPageRoute(builder: (context) => const SignUpScreen()),
                 );
               },
