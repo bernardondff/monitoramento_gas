@@ -41,6 +41,7 @@ class SignUpPage extends StatelessWidget {
 // ... (linha 36, o SizedBox)
   const SizedBox(height: 40),
 
+  // ↓↓↓ COLE ESTE BLOCO INTEIRO (SUBSTITUA SEU BOTÃO) ↓↓↓
   ElevatedButton.icon(
     style: ElevatedButton.styleFrom(
       backgroundColor: Colors.white,
@@ -55,26 +56,27 @@ class SignUpPage extends StatelessWidget {
     // 1. ESTE É O "onPressed" QUE USA OS IMPORTS
     onPressed: () async {
       // Mostra um indicador de "carregando"
-      // showDialog(
-      //   context: context,
-      //   builder: (context) => const Center(child: CircularProgressIndicator()),
-      //   barrierDismissible: false,
-      // );
+      showDialog(
+        context: context,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
 
       // USA O 'AuthService' (import 1 some)
       AuthService authService = AuthService();
       // USA O 'User' (import 2 some)
       User? user = await authService.signInWithGoogle();
 
-      // if (context.mounted) {
-      //   Navigator.of(context).pop(); // Tira o "carregando"
-      // }
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Tira o "carregando"
+      }
 
       if (user != null && context.mounted) {
         // SUCESSO!
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             // USA A 'GasMonitorScreen' (import 3 some)
+            // Lembre-se que o nome da sua classe é GasMonitorScreen
             builder: (context) => GasMonitorScreen(user: user), 
           ),
         );
@@ -88,7 +90,7 @@ class SignUpPage extends StatelessWidget {
         );
       }
     },
-    icon: const Icon(Icons.person), // (ícone do Google)
+    icon: const Icon(Icons.person), // ( ícone do Google)
     label: const Text(
       'Continuar com o Google',
       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

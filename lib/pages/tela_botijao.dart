@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:monitoramento_gas/services/auth_service.dart';
+import 'package:monitoramento_gas/pages/signup_page.dart';
 
 class GasMonitorScreen extends StatefulWidget {
   // torne o usuário opcional para compatibilidade com instâncias atuais
@@ -32,30 +34,49 @@ class _GasMonitorScreenState extends State<GasMonitorScreen> {
         centerTitle: true,
         // 2. REMOVE A SETA DE VOLTAR
         automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.shield_outlined, color: Colors.white70),
-            SizedBox(width: 8),
-            Text(
-              'SafeGas Monitor',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ],
+        
+        // ↓↓↓ MUDANÇA 1: MOSTRAR O NOME DO USUÁRIO LOGADO ↓↓↓
+        title: Text(
+          // O 'widget.user?' checa se o usuário não é nulo
+          // O 'displayName' pode ser nulo, então '??' usa "Usuário" como fallback
+          'Bem-vindo, ${widget.user?.displayName ?? 'Usuário'}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
+        
+        // ↓↓↓ MUDANÇA 2: ADICIONA O BOTÃO DE LOGOUT ↓↓↓
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white70),
+            tooltip: 'Sair', // Texto que aparece se segurar o clique
+            onPressed: () async {
+              // 1. Chama o serviço de autenticação para deslogar
+              await AuthService().signOut();
+
+              // 2. Navega de volta para a tela de login
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const SignUpPage()),
+                  (Route<dynamic> route) => false, // Remove todas as telas anteriores
+                );
+              }
+            },
+          ),
+        ],
+        // ↑↑↑ FIM DAS MUDANÇAS DO APPBAR ↑↑↑
+
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             Spacer(),
-            GasTankWidget(percentage: 75),
+            GasTankWidget(percentage: 75), // Isso ainda é um valor fixo "75"
             SizedBox(height: 40),
-            StatusWidget(),
+            StatusWidget(), // Isso ainda é um valor fixo "No leaks"
             Spacer(),
           ],
         ),
