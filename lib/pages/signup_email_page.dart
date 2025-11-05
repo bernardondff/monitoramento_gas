@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // Garanta que este caminho para a tela do botijão está correto!
 import 'package:monitoramento_gas/pages/tela_botijao.dart';
 
@@ -15,19 +16,19 @@ class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  final _auth = FirebaseAuth.instance;
+
   bool _acceptTerms = false;
 
   // ESTA É A FUNÇÃO CORRIGIDA
-  void _signUp() {
+  void _signUp() async {
     String username = _usernameController.text.trim();
     String email = _emailController.text.trim();
     String password = _passwordController.text;
     String confirmPassword = _confirmPasswordController.text;
 
-    if (username.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
+    // Validações existentes...
+    if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       _showMessage("Por favor, preencha todos os campos.");
       return;
     }
@@ -42,12 +43,39 @@ class SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    // AQUI A MÁGICA ACONTECE: NAVEGAÇÃO PARA A TELA DO BOTIJÃO
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const GasMonitorScreen()),
-    );
-  }
+    try {
+      // Criar usuário no Firebase
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Atualizar o nome do usuário
+      await userCredential.user?.updateDisplayName(username);
+
+      if (context.mounted && userCredential.user != null) {
+        // Navegar para tela do botijão passando o User do Firebase
+        Navigator.pushReplacement(
+          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(
+            builder: (context) => GasMonitorScreen(user: userCredential.user!),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = "Erro ao criar conta.";
+      if (e.code == 'weak-password') {
+        message = 'Senha muito fraca.';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'Este email já está em uso.';
+      }
+      _showMessage(message);
+    } catch (e) {
+      _showMessage("Erro ao criar conta: $e");
+      
+    }
+  } // Fechamento do método _signUp() que estava faltando
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(

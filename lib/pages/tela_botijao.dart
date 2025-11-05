@@ -1,130 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:monitoramento_gas/services/auth_service.dart';
-import 'package:monitoramento_gas/pages/signup_page.dart';
 
 class GasMonitorScreen extends StatefulWidget {
-  // torne o usuário opcional para compatibilidade com instâncias atuais
-  final User? user;
-
-  const GasMonitorScreen({super.key, this.user});
+  final User user; // Adiciona o usuário
+  const GasMonitorScreen({super.key, required this.user}); // Atualiza o construtor
 
   @override
   State<GasMonitorScreen> createState() => _GasMonitorScreenState();
 }
 
-class _GasMonitorScreenState extends State<GasMonitorScreen> {
-  int _selectedIndex = 0; // Alterado de 1 para 0
+class _GasMonitorScreenState extends State<GasMonitorScreen>
+    with SingleTickerProviderStateMixin {
+  int _selectedIndex = 0;
+  late final AnimationController _controller;
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // 3. COR DE FUNDO ESCURA GARANTIDA
-      backgroundColor: const Color(0xFF1A3644),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        // 2. REMOVE A SETA DE VOLTAR
-        automaticallyImplyLeading: false,
-        
-        // ↓↓↓ MUDANÇA 1: MOSTRAR O NOME DO USUÁRIO LOGADO ↓↓↓
-        title: Text(
-          // O 'widget.user?' checa se o usuário não é nulo
-          // O 'displayName' pode ser nulo, então '??' usa "Usuário" como fallback
-          'Bem-vindo, ${widget.user?.displayName ?? 'Usuário'}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        
-        // ↓↓↓ MUDANÇA 2: ADICIONA O BOTÃO DE LOGOUT ↓↓↓
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white70),
-            tooltip: 'Sair', // Texto que aparece se segurar o clique
-            onPressed: () async {
-              // 1. Chama o serviço de autenticação para deslogar
-              await AuthService().signOut();
-
-              // 2. Navega de volta para a tela de login
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const SignUpPage()),
-                  (Route<dynamic> route) => false, // Remove todas as telas anteriores
-                );
-              }
-            },
-          ),
-        ],
-        // ↑↑↑ FIM DAS MUDANÇAS DO APPBAR ↑↑↑
-
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Spacer(),
-            GasTankWidget(percentage: 75), // Isso ainda é um valor fixo "75"
-            SizedBox(height: 40),
-            StatusWidget(), // Isso ainda é um valor fixo "No leaks"
-            Spacer(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF234455),
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white54,
-        onTap: _onItemTapped,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-      ),
-    );
-  }
-}
-
-// O RESTO DO CÓDIGO CONTINUA O MESMO
-
-// WIDGET DO BOTIJÃO DE GÁS (COM ANIMAÇÃO)
-class GasTankWidget extends StatefulWidget {
-  final double percentage;
-  const GasTankWidget({super.key, required this.percentage});
-
-  @override
-  State<GasTankWidget> createState() => _GasTankWidgetState();
-}
-
-class _GasTankWidgetState extends State<GasTankWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
 
   @override
   void initState() {
@@ -143,48 +38,98 @@ class _GasTankWidgetState extends State<GasTankWidget>
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      // 3. COR DE FUNDO ESCURA GARANTIDA
+      backgroundColor: const Color(0xFF1A3644),
+      appBar: AppBar(
+        title: Text('Bem-vindo, ${widget.user.displayName ?? 'Usuário'}'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.exit_to_app),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (context.mounted) {
+                Navigator.of(context).pushReplacementNamed('/');
+              }
+            },
+          ),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GasTankWidget(
+              percentage: 45,
+              controller: _controller,
+            ),
+            const SizedBox(height: 24),
+            const StatusWidget(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF234455),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.local_gas_station), label: 'Monitor'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white54,
+        onTap: _onItemTapped,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+      ),
+    );
+  }
+}
+
+// O RESTO DO CÓDIGO CONTINUA O MESMO
+
+// WIDGET DO BOTIJÃO DE GÁS (COM ANIMAÇÃO)
+class GasTankWidget extends StatelessWidget {  // Mudou para StatelessWidget
+  final double percentage;
+  final AnimationController controller;  // Adiciona o controller
+  
+  const GasTankWidget({
+    super.key, 
+    required this.percentage,
+    required this.controller,  // Adiciona como required
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
-      width: 200,
-      height: 300,
+      width: 160,
+      height: 240,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Container(
+            width: 120,
+            height: 200,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(100),
+              color: const Color(0xFF1E2E35),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white24),
             ),
           ),
           AnimatedBuilder(
-            animation: _controller,
+            animation: controller,
             builder: (context, child) {
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: CustomPaint(
-                  size: const Size(200, 300),
-                  painter: WavePainter(
-                    animationValue: _controller.value,
-                    percentage: widget.percentage,
-                    color: const Color(0xFF3399FF),
-                  ),
+              return CustomPaint(
+                size: const Size(120, 200),
+                painter: WavePainter(
+                  animationValue: controller.value,
+                  percentage: percentage,
+                  color: Colors.lightBlueAccent,
                 ),
               );
             },
-          ),
-          Text(
-            '${widget.percentage.toInt()}%',
-            style: const TextStyle(
-              fontSize: 56,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  blurRadius: 10.0,
-                  color: Colors.black26,
-                  offset: Offset(2.0, 2.0),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -198,10 +143,11 @@ class WavePainter extends CustomPainter {
   final double percentage;
   final Color color;
 
-  WavePainter(
-      {required this.animationValue,
-      required this.percentage,
-      required this.color});
+  WavePainter({
+    required this.animationValue,
+    required this.percentage,
+    required this.color,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
