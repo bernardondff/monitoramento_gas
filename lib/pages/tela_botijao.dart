@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:monitoramento_gas/pages/stats_page.dart';
+import 'package:monitoramento_gas/pages/profile_page.dart';
 
 class GasMonitorScreen extends StatefulWidget {
   final User user; // Adiciona o usuário
@@ -57,19 +59,31 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
           ),
         ],
       ),
-      body: Center(
+      body: IndexedStack(
+    index: _selectedIndex,
+    children: [
+      // Tab 0: Home (o Monitor que você já fez)
+      Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GasTankWidget(
-              percentage: 45,
+              percentage: 45, // (Ainda fixo)
               controller: _controller,
             ),
             const SizedBox(height: 24),
-            const StatusWidget(),
+            const StatusWidget(), // (Ainda fixo)
           ],
         ),
       ),
+
+      // Tab 1: Stats (a nova página de estatísticas)
+      const StatsPage(),
+
+      // Tab 2: Profile (a nova página de perfil)
+      const ProfilePage(),
+    ],
+  ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF234455),
         items: const <BottomNavigationBarItem>[
