@@ -19,7 +19,7 @@ void main() async {
     // Se deu certo, roda o MyApp
     runApp(const MyApp());
 
-  } catch (e) {
+  } catch (e) { 
     // Se deu erro, mostra uma tela de erro
     runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -30,8 +30,9 @@ void main() async {
             textAlign: TextAlign.center,
           ),
         ),
+        ),
       ),
-    ));
+    );
   }
 }
 
