@@ -1,5 +1,5 @@
 // ARQUIVO: lib/pages/tela_botijao.dart
-// (Seu código + StreamBuilder na Tab 0 + StatusWidget corrigido)
+// (VERSÃO FINAL COM A CORREÇÃO DO ProfilePage)
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ import 'package:monitoramento_gas/pages/signup_page.dart';
 // Imports das novas telas e do Realtime Database
 import 'package:monitoramento_gas/pages/stats_page.dart';
 import 'package:monitoramento_gas/pages/profile_page.dart';
-import 'package:firebase_database/firebase_database.dart'; // <-- IMPORT ADICIONADO
+import 'package:firebase_database/firebase_database.dart';
 
 
 class GasMonitorScreen extends StatefulWidget {
@@ -27,7 +27,6 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
   late final AnimationController _controller;
   late final List<Widget> _pages;
 
-  // ↓↓↓ MUDANÇA 1: ADICIONA A REFERÊNCIA DO BANCO ↓↓↓
   final DatabaseReference _databaseRef = 
       FirebaseDatabase.instance.ref('botijoes/botijao_01');
 
@@ -45,7 +44,7 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // ↓↓↓ MUDANÇA 2: INICIALIZA A LISTA DE TELAS COM O STREAMBUILDER ↓↓↓
+    // Inicializa a lista de telas com o StreamBuilder
     _pages = [
       
       // Tab 0: Home (AGORA "ESCUTANDO" O FIREBASE)
@@ -53,12 +52,10 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
         stream: _databaseRef.onValue, // O "escutador"
         builder: (context, snapshot) {
           
-          // Se estiver carregando
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Se der erro ou não tiver dados
           if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
             // Mostra 0% como fallback
             return Center(
@@ -80,12 +77,10 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
           Map<dynamic, dynamic> data = 
               snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
           
-          // Pega os valores reais
           int nivel = data['nivel'] ?? 0;
           String status = data['status'] ?? 'Desconhecido';
           bool vazamento = data['vazamento'] ?? false;
           
-          // Constrói a UI com os DADOS REAIS
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -103,14 +98,15 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
       ),
       // FIM DA TAB 0
       
-      // Tab 1: Stats (A página de estatísticas que já funciona)
+      // Tab 1: Stats 
       const StatsPage(),
       
-      // Tab 2: Profile (A página de perfil)
-      const ProfilePage(),
+      // ↓↓↓ AQUI ESTÁ A CORREÇÃO ↓↓↓
+      // Tab 2: Profile (Agora passa o usuário)
+      ProfilePage(user: widget.user), // <-- CORRIGIDO
+      // ↑↑↑ FIM DA CORREÇÃO ↑↑↑
     ];
   }
-  // ↑↑↑ FIM DA MUDANÇA 2 ↑↑↑
 
 
   @override
@@ -124,7 +120,6 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
     return Scaffold(
       backgroundColor: const Color(0xFF1A3644),
       appBar: AppBar(
-        // ... (Seu AppBar está 100% correto) ...
         title: Text('Bem-vindo, ${widget.user.displayName ?? 'Usuário'}'),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -145,14 +140,12 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
         ],
       ),
       
-      // O Body agora usa o IndexedStack
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
       
       bottomNavigationBar: BottomNavigationBar(
-        // ... (Seu BottomNavigationBar está 100% correto) ...
         backgroundColor: const Color(0xFF234455),
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -183,7 +176,6 @@ class _GasMonitorScreenState extends State<GasMonitorScreen>
 }
 
 // --- WIDGET DO BOTIJÃO DE GÁS ---
-// (Não mudou nada aqui)
 class GasTankWidget extends StatelessWidget {
   final double percentage;
   final AnimationController controller;
@@ -246,7 +238,6 @@ class GasTankWidget extends StatelessWidget {
 }
 
 // --- CLASSE QUE DESENHA A ONDA ---
-// (Não mudou nada aqui)
 class WavePainter extends CustomPainter {
   final double animationValue;
   final double percentage;
@@ -262,8 +253,10 @@ class WavePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
     final double waveHeight = size.height * (percentage / 100);
-    // ignore: unused_local_variable
+    
+    // Correção da onda para nível baixo
     final double waveAmplitude = math.min(8.0, waveHeight / 2);
+    
     final path = Path();
     path.moveTo(0, size.height);
     path.lineTo(0, size.height - waveHeight);
@@ -274,7 +267,7 @@ class WavePainter extends CustomPainter {
         (size.height - waveHeight) +
             (math.sin((i / size.width * 2 * math.pi) +
                     (animationValue * 2 * math.pi)) *
-                8),
+                waveAmplitude), // <-- USA A AMPLITUDE CORRIGIDA
       );
     }
 
@@ -288,9 +281,8 @@ class WavePainter extends CustomPainter {
 }
 
 
-// ↓↓↓ MUDANÇA 3: SUBSTITUI O STATUSWIDGET "BURRO" PELO "INTELIGENTE" ↓↓↓
+// --- WIDGET DE STATUS "INTELIGENTE" ---
 class StatusWidget extends StatelessWidget {
-  // 1. Ele agora recebe os dados
   final String status;
   final bool vazamento;
 
@@ -302,7 +294,6 @@ class StatusWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 2. Define a cor e o ícone baseado nos dados
     final Color statusColor = vazamento ? Colors.redAccent : Colors.greenAccent;
     final IconData statusIcon = vazamento ? Icons.warning_amber_rounded : Icons.check_circle;
 
@@ -310,13 +301,12 @@ class StatusWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Status: $status', // 3. Mostra o status real
+          'Status: $status', // Mostra o status real
           style: const TextStyle(color: Colors.white70, fontSize: 16),
         ),
         const SizedBox(width: 8),
-        Icon(statusIcon, color: statusColor, size: 20), // 4. Mostra o ícone real
+        Icon(statusIcon, color: statusColor, size: 20), // Mostra o ícone real
       ],
     );
   }
 }
-// ↑↑↑ FIM DA MUDANÇA 3 ↑↑↑
