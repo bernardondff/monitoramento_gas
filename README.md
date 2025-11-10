@@ -1,6 +1,6 @@
 # ⛽ SafeGas Monitor - Aplicativo de Monitoramento de Gás
 
-![SafeGas Monitor App Screenshot](c:\Users\berna\OneDrive\Imagens\Screenshots\app.png) Um aplicativo Flutter robusto para monitoramento inteligente de botijões de gás, oferecendo controle em tempo real do nível de gás e alertas de segurança para vazamentos. Desenvolvido para proporcionar tranquilidade e eficiência no consumo de gás doméstico ou comercial.
+![SafeGas Monitor App Screenshot](C:\Projetos\monitoramento_gas\docs\screenshots\app.png) Um aplicativo Flutter robusto para monitoramento inteligente de botijões de gás, oferecendo controle em tempo real do nível de gás e alertas de segurança para vazamentos. Desenvolvido para proporcionar tranquilidade e eficiência no consumo de gás doméstico ou comercial.
 
 ---
 
