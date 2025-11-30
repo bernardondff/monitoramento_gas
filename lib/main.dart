@@ -1,95 +1,93 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// ARQUIVO: lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:monitoramento_gas/firebase_options.dart';
+// IMPORTS NOVOS PARA NOTIFICAÇÃO
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:async';
 
-// Importe suas telas
-import 'package:monitoramento_gas/pages/signup_page.dart';
-import 'package:monitoramento_gas/pages/tela_botijao.dart'; // Onde está a GasMonitorScreen
+import 'package:monitoramento_gas/pages/splash_screen.dart';
+
+// --- LÓGICA DE NOTIFICAÇÃO EM SEGUNDO PLANO ---
+// Esta função precisa ser FORA de qualquer classe (top-level)
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Se precisar usar outros serviços do Firebase aqui, tem que inicializar antes.
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // ignore: avoid_print
+  print("Notificação recebida em segundo plano: ${message.notification?.title}");
+}
+// ----------------------------------------------
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializa o Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  // Vamos inicializar o Firebase com segurança
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    
-    // Se deu certo, roda o MyApp
-    runApp(const MyApp());
+  // --- CONFIGURAÇÃO DO FCM (FIREBASE CLOUD MESSAGING) ---
+  
+  // 1. Define o manipulador para mensagens em segundo plano
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  } catch (e) { 
-    // Se deu erro, mostra uma tela de erro
-    runApp(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text(
-            'Falha ao conectar com o Firebase.\n\n${e.toString()}',
-            textAlign: TextAlign.center,
-          ),
-        ),
-        ),
-      ),
-    );
-  }
+  // 2. Pega a instância do Messaging
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // 3. Pede permissão ao usuário (crucial no iOS, boa prática no Android 13+)
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: true, // Alerta crítico para vazar som mesmo no silencioso (se o OS deixar)
+    provisional: false,
+    sound: true,
+  );
+  // ignore: avoid_print
+  print('Permissão de notificação: ${settings.authorizationStatus}');
+
+  // 4. Inscreve o dispositivo no tópico "alerta_vazamento"
+  // É para este tópico que a nossa Cloud Function envia a mensagem.
+  await messaging.subscribeToTopic('alerta_vazamento');
+  // ignore: avoid_print
+  print('Inscrito no tópico alerta_vazamento!');
+
+  // 5. Configura como o app lida com notificações quando está ABERTO (foreground)
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // ignore: avoid_print
+    print('Mensagem recebida com o app aberto!');
+    if (message.notification != null) {
+      // Aqui você pode mostrar um dialog, um snackbar, etc.
+      // ignore: avoid_print
+      print('Título: ${message.notification!.title}, Corpo: ${message.notification!.body}');
+    }
+  });
+  
+  // -----------------------------------------------------
+
+  runApp(const MyApp());
 }
 
-// O App principal
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'SafeGas Monitor',
       debugShowCheckedModeBanner: false,
-      title: "SafeGas",
       theme: ThemeData(
-        brightness: Brightness.dark, // Tema escuro
-        scaffoldBackgroundColor: const Color(0xFF1A3644),
-        primaryColor: const Color(0xFF1A3644),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF3399FF),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
         fontFamily: 'Roboto',
       ),
-      // A "home" do nosso app agora é o "Vigia" de autenticação
-      home: const AuthWrapper(),
-    );
-  }
-}
-
-
-// O "VIGIA" DE AUTENTICAÇÃO
-//
-// Este widget vai "escutar" o Firebase e decidir
-// para qual tela o usuário deve ir.
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      // "Escuta" o status de login do Firebase em tempo real
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        
-        // 1. Se estiver "carregando" a informação
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        // 2. Se o Firebase JÁ TEM um usuário logado
-        if (snapshot.hasData) {
-          // 'snapshot.data!' é o objeto 'User'
-          return GasMonitorScreen(user: snapshot.data!);
-        }
-
-        // 3. Se NÃO TEM usuário logado
-        return const SignUpPage();
-      },
+      // Inicia pela Splash Screen, que decide se vai pro Login ou Home
+      home: const SplashScreen(),
     );
   }
 }
